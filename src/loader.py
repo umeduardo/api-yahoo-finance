@@ -6,7 +6,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options  
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from selenium.common.exceptions import TimeoutException, NoSuchElementException, ElementClickInterceptedException
 
 import os
 import time 
@@ -38,7 +38,7 @@ class Loader():
     
     def __start_browser(self) -> None:
         chrome_options = Options()
-        #chrome_options.add_argument("--headless") 
+        chrome_options.add_argument("--headless") 
 
         self.browser = webdriver.Chrome(executable_path=self.__get_executable_path(), options=chrome_options)
         self.browser.implicitly_wait(self.implicitly_wait)
@@ -57,6 +57,28 @@ class Loader():
             }
         return records
 
+
+
+    def load_all_regions(self) -> List:
+        """
+        Return a list of regions availables
+        eg:
+        ["Brazil", "Peru", "Chile",...]
+        """
+        self.browser.get(self.finance_url)
+        wait = WebDriverWait(self.browser, 10)
+
+        #open dropdown with all regions
+        btn_open_dropdown = self.browser.find_element(By.XPATH, '/html/body/div[1]/div/div/div[1]/div/div[2]/div/div/div[5]/div/div/div/div[2]/div[1]/div[1]/div[1]/div/div[2]/ul/li/div/div')
+        btn_open_dropdown.click()
+
+        regions = self.browser.find_elements(By.XPATH, f'//*[@id="dropdown-menu"]//span')
+
+        results: List = []
+        for region in regions:
+            results.append(region.get_attribute('innerHTML'))
+
+        return results
         
 
     def load_stocks_from_region(self, region: str) -> Dict:
@@ -107,7 +129,6 @@ class Loader():
         btn_submit = wait.until(EC.element_to_be_clickable((By.XPATH,'/html/body/div[1]/div/div/div[1]/div/div[2]/div/div/div[5]/div/div/div/div[2]/div[1]/div[3]/button[1]')))
         btn_submit.click()
 
-        #results: pd.DataFrame = pd.DataFrame(columns=['symbol', 'name', 'price'])
         records: Dict = {}
 
         end_of_file = False
@@ -128,16 +149,16 @@ class Loader():
                 #results = pd.concat([results, df])
 
                 btn_next = wait.until(EC.element_to_be_clickable((By.XPATH,'/html/body/div[1]/div/div/div[1]/div/div[2]/div/div/div[6]/section/div/div[2]/div[2]/button[3]')))
-                btn_next.click()
+                #btn_next.click()
+                self.browser.execute_script("arguments[0].click();", btn_next)
+            except ElementClickInterceptedException as e:
+                print(e)
+                raise RuntimeError('Did not possible load data')
                 
             except TimeoutException as e:
-                print(e)
                 end_of_file = True
 
-        #total_results = int(self.browser.find_element(By.XPATH, '/html/body/div[1]/div/div/div[1]/div/div[2]/div/div/div[5]/div/div[2]/div[1]/div[2]/div/div[2]/div').get_attribute('innerHTML'))
         self.browser.quit()
-        # if total_results != len(records):
-        #     raise ValueError('Incomplete load data')
 
         return records
 

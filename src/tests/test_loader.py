@@ -16,7 +16,11 @@ def test_open_browser():
 
 def test_load_stocks():
     loader: Loader = Loader()
-    data = loader.load_stocks_from_region('Malaysia')
+    data: Dict = loader.load_stocks_from_region('Malaysia')
     for index, row in data.items():
         assert index == row['symbol']
     
+def test_load_regions():
+    loader: Loader = Loader()
+    data: List = loader.load_all_regions()
+    assert len(data) > 0
