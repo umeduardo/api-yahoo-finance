@@ -19,6 +19,7 @@ Desenvolvimento de uma API para mercado financeiro utilizando um webcrawler para
 
 # Métodos
 ### Consulta por região
+- http://127.0.0.1:5000/regions
 - http://127.0.0.1:5000/stocks?region=Argentina
 
 # Libraries
