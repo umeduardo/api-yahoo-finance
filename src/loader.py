@@ -46,7 +46,7 @@ class Loader():
 
     def process_data(self, dataframe: pd.DataFrame) -> Dict:
         """
-        return a formated {dataframe} inserint symbol as key
+        return a formatted {dataframe} inserting symbol as key
         """
         records: Dict = {}
         for index, row in dataframe.iterrows():
